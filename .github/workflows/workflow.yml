@@ -1,0 +1,41 @@
+name: push-dags-to-ec2
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pre-checkout
+        id: checkout-practice
+        uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{secrets.AWS_ARN_ROLE}}
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+
+      - name: ssh to bastion host and copy files
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+            host: ${{secrets.BASTION_HOST}}
+            username: ${{secrets.BASTION_USERNAME}}
+            key: ${{secrets.BASTION_SSH_KEY}}
+            port: ${{secrets.BASTION_PORT}}
+            script: |
+                scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ./dags/* ubuntu@${{secrets.EC2_HOST}}:/home/ubuntu/airflow/dags/
+                ehco "Dags Copied Successfully"
+                ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{secrets.EC2_HOST}} 'cd /home/ubuntu/airflow/ && docker-compose down && docker-compose up -d --build'
+                echo "Airflow Restarted Successfully"
+        
+
+
