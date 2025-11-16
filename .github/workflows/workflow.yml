@@ -25,9 +25,9 @@ jobs:
             key: ${{secrets.BASTION_SSH_KEY}}
             port: ${{secrets.BASTION_PORT}}
             script: |
-                scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ./dags/* ubuntu@${{secrets.EC2_HOST}}:/home/ubuntu/airflow/dags/
+                scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ./dags/* ubuntu@${{secrets.EC2_HOST}}:/home/ubuntu/app/dags/
                 echo "Dags Copied Successfully"
-                ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{secrets.EC2_HOST}} "cd /home/ubuntu/airflow/ && docker-compose down && docker-compose up -d --build"
+                ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{secrets.EC2_HOST}} "cd /home/ubuntu/app/ && docker-compose down && docker-compose up -d --build"
                 echo "Airflow Restarted Successfully"
         
 
