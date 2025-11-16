@@ -17,6 +17,14 @@ jobs:
         id: checkout-practice
         uses: actions/checkout@v4
 
+      - name: List files in workspace
+        run: |
+            pwd
+            ls -la
+            ls -la dags
+
+
+
       - name: ssh to bastion host and copy files
         uses: appleboy/ssh-action@v0.1.7
         with:
