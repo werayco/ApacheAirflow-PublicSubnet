@@ -39,12 +39,19 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           script: |
+            echo "Preparing EC2 directory..."
+            # FIX 1: Ensure the destination directory exists on EC2
+            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/dags"
+
             echo "Copying DAGs from Bastion → EC2..."
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
+            
+            echo "Restarting Airflow on EC2 (Fixing docker-compose command)..."
+            # FIX 2: Corrected the command to 'docker compose'
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
-              docker-compose down && \
-              docker-compose up -d --build \
+              docker compose down && \
+              docker compose up -d --build \
             "
 
             echo "Airflow Restarted Successfully"
