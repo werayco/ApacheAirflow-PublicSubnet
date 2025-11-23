@@ -28,10 +28,10 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           source: "dags/*"
-          target: "~/app/dags/"
+          target: "~/app/"
           overwrite: true
 
-      - name: Copy from Bastion to EC2 and Restart Airflow
+      - name: Restart Airflow on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.BASTION_HOST }}
@@ -40,17 +40,11 @@ jobs:
           port: ${{ secrets.BASTION_PORT }}
           script: |
             echo "Copying DAGs from Bastion → EC2..."
-            
-            # First, ensure the target directory exists on EC2
-            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/dags"
-            
-            # Copy all DAG files from bastion to EC2
-            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r /home/ubuntu/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
-            
-            echo "Restarting Airflow containers..."
-            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "
+            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/ "
+            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
-              docker-compose restart airflow-scheduler airflow-worker
+              docker-compose down && \
+              docker-compose up -d --build \
             "
-            
+
             echo "Airflow Restarted Successfully"
