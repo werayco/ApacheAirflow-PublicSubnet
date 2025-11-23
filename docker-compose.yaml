@@ -18,8 +18,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    # The following line can be used to set a custom config file, stored in the local config folder
+    _PIP_ADDITIONAL_REQUIREMENTS: ""
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
@@ -33,6 +32,8 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
+  networks:
+    - chatai
 
 services:
   postgres:
@@ -49,6 +50,8 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    networks:
+      - chatai
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -63,23 +66,34 @@ services:
       retries: 50
       start_period: 30s
     restart: always
-
+    networks:
+      - chatai
+  
   airflow-apiserver:
     <<: *airflow-common
     command: api-server
-    ports:
-      - "8080:8080"
+    ports: 
+       - "8080:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.airflow.rule=Host(`airflow.devrayco.name.ng`)"
+      - "traefik.http.routers.airflow.entrypoints=websecure"
+      - "traefik.http.routers.airflow.tls.certresolver=myresolverv1"
+      - "traefik.http.services.airflow.loadbalancer.server.port=8080"
+    networks:
+      - chatai
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
 
   airflow-scheduler:
     <<: *airflow-common
@@ -95,6 +109,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - chatai
 
   airflow-dag-processor:
     <<: *airflow-common
@@ -135,6 +151,8 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - chatai
 
   airflow-triggerer:
     <<: *airflow-common
@@ -282,3 +300,8 @@ services:
 
 volumes:
   postgres-db-volume:
+
+
+networks:
+  chatai:
+    driver: bridge

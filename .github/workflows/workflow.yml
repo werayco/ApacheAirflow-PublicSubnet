@@ -53,7 +53,7 @@ jobs:
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
               docker compose down && \
-              docker compose up -d --build \
+              docker compose up -d \
             "
 
             echo "Airflow Restarted Successfully"

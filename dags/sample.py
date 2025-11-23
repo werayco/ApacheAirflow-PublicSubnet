@@ -12,7 +12,7 @@ with DAG(
     dag_id='mysampledag',
     default_args=default_args,
     description='A simple DAG with BashOperator',
-    schedule_interval='@daily',
+    schedule='@daily',
     start_date=datetime(2025, 11, 23),
     catchup=False,
 ) as dag:
