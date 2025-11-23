@@ -50,7 +50,6 @@ jobs:
             # FIX 3: Change source from '~/app/*' to '~/app/dags/*'
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
             
-            echo "Restarting Airflow on EC2..."
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
               docker compose down && \
