@@ -40,7 +40,7 @@ jobs:
           port: ${{ secrets.BASTION_PORT }}
           script: |
             echo "Copying DAGs from Bastion → EC2..."
-            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/ "
+            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
               docker-compose down && \
