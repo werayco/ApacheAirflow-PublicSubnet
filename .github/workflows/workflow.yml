@@ -25,7 +25,6 @@ jobs:
           target: "~/app/"
           overwrite: true
 
-      # 3️⃣ Deploy DAGs from Bastion → EC2
       - name: Deploy DAGs to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -46,16 +45,10 @@ jobs:
             echo "Copying DAGs from Bastion → EC2..."
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
 
-            echo "Fixing permissions on EC2..."
-            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
-              sudo chown -R ubuntu:ubuntu /home/ubuntu/app/dags && \
-              sudo chmod -R 755 /home/ubuntu/app/dags \
-            "
-
             echo "Starting Airflow on EC2..."
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
               docker compose up -d \
             "
 
-            echo "Deployment complete ✔️"
+            echo "Deployment complete"
