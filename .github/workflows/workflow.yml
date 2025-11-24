@@ -20,6 +20,7 @@ jobs:
           echo "Dags folder:"
           ls -la dags
 
+      # Copy DAGs from GitHub → Bastion
       - name: Copy DAGs to Bastion
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -28,10 +29,11 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           source: "dags/*"
-          target: "~/app/"
+          target: "~/app/dags/"
           overwrite: true
 
-      - name: Restart Airflow on EC2
+      # Run commands from Bastion → EC2
+      - name: Deploy to EC2 Through Bastion
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.BASTION_HOST }}
@@ -39,21 +41,19 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           script: |
-            echo "--- DEBUG BASTION ---"
-            ls -la ~/app/dags/ # CHECKING THE ACTUAL FILES WE WANT TO COPY
-
-            echo "Preparing EC2 directory..."
-            # Ensure the destination directory exists on EC2
-            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/dags && ls -la /home/ubuntu/app/dags"
-
-            echo "Copying DAGs from Bastion → EC2..."
-            # FIX 3: Change source from '~/app/*' to '~/app/dags/*'
-            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
-            
+            echo "Stopping Airflow on EC2..."
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
-              docker compose down && \
+              docker compose down \
+            "
+
+            echo "Copying DAGs from Bastion → EC2..."
+            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
+
+            echo "Starting Airflow again..."
+            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
+              cd /home/ubuntu/app && \
               docker compose up -d \
             "
 
-            echo "Airflow Restarted Successfully"
+            echo "Deployment complete"
