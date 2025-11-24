@@ -27,9 +27,5 @@ with DAG(
         bash_command='ls -la /tmp'
     )
 
-    echo_message = BashOperator(
-        task_id='echo_message',
-        bash_command='echo "Hello from Airflow!"'
-    )
 
-    print_date >> list_files >> echo_message
+    print_date >> list_files
