@@ -22,7 +22,7 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           source: "dags/*"
-          target: "~/app/dags/"
+          target: "~/app/"
           overwrite: true
 
       # 3️⃣ Deploy DAGs from Bastion → EC2
