@@ -1,7 +1,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
-# from airflow.operators.email import EmailOperator
+from airflow.operators.email import EmailOperator
 
 default_args = {
     'owner': 'airflow',
@@ -30,6 +30,12 @@ with DAG(
         task_id='list_tmp_files',
         bash_command='ls -la /tmp'
     )
+    send_email = EmailOperator(
+        task_id='send_email',
+        to=['screenbondhq@gmail.com', 'heisrayco@gmail.com'],
+        subject='Airflow DAG Notification',
+        html_content='<h3>Your DAG has completed successfully!</h3>',
+    )
 
 
-    print_date >> list_files
+    print_date >> list_files >> send_email
