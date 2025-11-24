@@ -1,11 +1,15 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+# from airflow.operators.email import EmailOperator
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'retries': 1,
+    "email_on_failure": True,
+    "email": ["screenbondhq@gmail.com", "heisrayco@gmail.com"],
+    "email_on_retry": True,
 }
 
 with DAG(
