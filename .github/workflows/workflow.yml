@@ -41,6 +41,9 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           script: |
+            echo "--- DEBUG BASTION ---"
+            ls -la ~/app/dags/
+
             echo "Stopping Airflow on EC2..."
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
@@ -50,10 +53,16 @@ jobs:
             echo "Copying DAGs from Bastion → EC2..."
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
 
+            echo "Fixing permissions..."
+            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
+              sudo chown -R ubuntu:ubuntu /home/ubuntu/app/dags && \
+              sudo chmod -R 755 /home/ubuntu/app/dags \
+            "
+
             echo "Starting Airflow again..."
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
               docker compose up -d \
             "
 
-            echo "Deployment complete"
+            echo "Deployment complete ✔️"
