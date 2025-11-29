@@ -2,7 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualEnvOperator
+from airflow.providers.python.operators.python import PythonVirtualEnvOperator
 from airflow.operators.email_operator import EmailOperator
 from airflow.models import Variable
 
