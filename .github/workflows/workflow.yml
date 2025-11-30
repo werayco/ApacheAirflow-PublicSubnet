@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.BASTION_USERNAME }}
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
-          source: "requirememts.txt"
+          source: "requirements.txt"
           target: "~/"
           overwrite: true
 
