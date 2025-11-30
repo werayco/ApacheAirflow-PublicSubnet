@@ -1,3 +1,5 @@
 pymongo
 yfinance
-requests
+statsmodels
+pandas
+numpy

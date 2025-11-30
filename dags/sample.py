@@ -82,6 +82,23 @@ def scrapeyfinancedata():
             collection.insert_many(records)
 
         print(f"Saved CSV + inserted {len(records)} records to MongoDB")
+        
+    def clearAAPLcollection():
+        import pymongo
+        from airflow.models import Variable
+
+        mongo_conn = Variable.get("MONGO")
+        client = pymongo.MongoClient(mongo_conn)
+        
+        db = client["finance_data"]
+        collection = db["AAPL"]
+        collection.delete_many({})
+        print("Cleared AAPL collection in MongoDB")
+    
+    clear_db = PythonOperator(
+        task_id="clear_aapl_collection",
+        python_callable=clearAAPLcollection,
+    )
 
     scrape_task = PythonOperator(
         task_id="scrape_yfinance_saveascsv_and_save_to_mongodb",
@@ -94,6 +111,7 @@ def scrapeyfinancedata():
         subject='Yfinance data scraped and stored',
         html_content='<h3>Your DAG has completed successfully!</h3>',
     )
+
 
     scrape_task >> send_email_task
 
