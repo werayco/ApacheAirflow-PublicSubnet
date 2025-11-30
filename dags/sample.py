@@ -89,7 +89,7 @@ def scrapeyfinancedata():
 
         mongo_conn = Variable.get("MONGO")
         client = pymongo.MongoClient(mongo_conn)
-        
+
         db = client["finance_data"]
         collection = db["AAPL"]
         collection.delete_many({})
@@ -113,7 +113,7 @@ def scrapeyfinancedata():
     )
 
 
-    scrape_task >> send_email_task
+    clear_db >> scrape_task >> send_email_task
 
 
 scrapefinance_dag = scrapeyfinancedata()
