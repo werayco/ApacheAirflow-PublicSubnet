@@ -200,15 +200,15 @@ def scrape_finance_news():
         client.close()
         print(f"Total new articles stored: {stored_count}")
         return stored_count
-    
+
     send_email_task = EmailOperator(
         task_id='email_notification',
         to=['screenbondhq@gmail.com', 'heisrayco@gmail.com'],
         subject='Yfinance news scraped and stored',
-        html_content=f'<h3>At {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, The news scraping task completed successfully!</h3>',
+        html_content='<h3>The news scraping task completed successfully at {{ ts }}</h3>',
     )
 
+    fetch_and_store_news() >> send_email_task
 
-    fetch_and_store_news >> send_email_task
-
+scrape_finance_news()
 # scrape_finance_news()
