@@ -4,3 +4,4 @@ statsmodels
 pandas
 numpy
 sentence-transformers
+feedparser
