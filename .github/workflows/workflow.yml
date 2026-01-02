@@ -23,14 +23,14 @@ jobs:
           target: "~/app/"
           overwrite: true
 
-      - name: Copy requirements.txt to bastion
+      - name: Copy Dockerfile and requirements to Bastion
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.BASTION_HOST }}
           username: ${{ secrets.BASTION_USERNAME }}
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
-          source: "requirements.txt"
+          source: "dockerfile,requirements.txt"
           target: "~/"
           overwrite: true
 
@@ -42,23 +42,16 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           port: ${{ secrets.BASTION_PORT }}
           script: |
-            echo "listing files in ~/app/dags on the bastion server ---"
-            ls -la ~/app/dags/
-
-            echo "stopping Airflow on EC2"
-            ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
-              cd /home/ubuntu/app && \
-              docker compose down \
-            "
-
-            echo "Copying DAGs from Bastion to EC2"
+            echo "Copying files from Bastion to EC2"
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem -r ~/app/dags/* ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dags/
+            scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ~/dockerfile ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/dockerfile
             scp -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ~/requirements.txt ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/requirements.txt
 
-
-            echo "Starting Airflow on EC2..."
+            echo "Rebuilding and restarting Airflow on EC2"
             ssh -o StrictHostKeyChecking=no -i /home/ubuntu/airflow.pem ubuntu@${{ secrets.EC2_HOST }} "\
               cd /home/ubuntu/app && \
+              docker compose down && \
+              docker compose build --no-cache && \
               docker compose up -d \
             "
 
